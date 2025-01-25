@@ -1,101 +1,195 @@
+"use client";
+
+import PointCounter from "./components/pointCounter";
+import { useGameStore } from "@/store/game";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import RuleBtn from "./components/rule";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const isPicked = useGameStore((state) => state.isPicked);
+  const setIsPicked = useGameStore((state) => state.setIsPicked);
+  const picked = useGameStore((state) => state.pickedItem);
+  const addPoint = useGameStore((state) => state.addPoints);
+  const setPicked = useGameStore((state) => state.setPickedItem);
+  const points = useGameStore((state) => state.points);
+  const [isLoading, setIsLoading] = useState(true);
+  const [housePick, setHousePick] = useState("");
+  const [isWinner, setIsWinner] = useState<boolean | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handlePick = (pick: string) => {
+    console.log(pick);
+    setIsLoading(true);
+    setIsPicked(true);
+    setPicked(pick);
+    const housePick = ["rock", "paper", "scissors"];
+    const randomPick = housePick[Math.floor(Math.random() * housePick.length)];
+    setHousePick(randomPick);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (!isLoading) handleCheckWinner();
+  }, [isLoading, housePick, picked]);
+
+  const handleCheckWinner = () => {
+    if (picked === housePick) {
+      setIsWinner(null);
+    } else if (
+      (picked === "rock" && housePick === "scissors") ||
+      (picked === "scissors" && housePick === "paper") ||
+      (picked === "paper" && housePick === "rock")
+    ) {
+      addPoint(1);
+      setIsWinner(true);
+    } else {
+      if (points > 0) addPoint(-1);
+      setIsWinner(false);
+    }
+  };
+
+  const handleReset = () => {
+    setIsPicked(false);
+    setIsWinner(null);
+  };
+  return (
+    <div className=" w-full h-full justify-between flex sm:py-28 py-14 flex-col items-center">
+      <PointCounter />
+      {!isPicked ? (
+        <div
+          style={{ backgroundImage: `url(/images/bg-triangle.svg)` }}
+          className="sm:w-96 sm:h-96 w-[16rem] h-[16rem] flex flex-col relative bg-contain bg-center bg-no-repeat"
+        >
+          <button
+            onClick={() => handlePick("paper")}
+            className=" sm:size-[13rem] size-[9rem] absolute top-[-60px] left-[-60px] rounded-full flex justify-center border-b-[10px] items-center bg-gradient-to-r from-[hsl(230,89%,62%)] border-indigo-700 to-[hsl(230,89%,65%)]"
           >
+            <div className=" absolute sm:size-[10.5rem] h-[7rem] w-[7rem] border-t-[10px] bg-white rounded-full" />
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/images/icon-paper.svg"
+              alt="Paper"
+              width={80}
+              height={80}
+              className=" z-10 sm:w-[80px] w-[50px] sm:h-[80px] h-[50px]"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </button>
+          <button
+            onClick={() => handlePick("scissors")}
+            className=" sm:size-[13rem] size-[9rem] absolute border-b-[10px] top-[-60px] right-[-60px] rounded-full flex justify-center items-center bg-gradient-to-r from-[hsl(390,89%,49%)] border-amber-700 to-[hsl(40,84%,53%)]"
           >
-            Read our docs
-          </a>
+            <div className=" absolute sm:size-[10.5rem] h-[7rem] w-[7rem] border-t-[10px] bg-white rounded-full" />
+            <Image
+              src="/images/icon-scissors.svg"
+              alt="Scissors"
+              width={80}
+              height={80}
+              className=" z-10 sm:w-[80px] w-[50px] sm:h-[80px] h-[50px]"
+            />
+          </button>
+          <button
+            onClick={() => handlePick("rock")}
+            className=" sm:size-[13rem] size-[9rem] absolute border-b-[10px] bottom-[-60px] right-0 left-0 mx-auto rounded-full flex justify-center items-center bg-gradient-to-r from-[hsl(349,71%,52%)] border-rose-700 to-[hsl(349,70%,56%)]"
+          >
+            <div className=" absolute sm:size-[10.5rem] h-[7rem] w-[7rem] border-t-[10px] bg-white rounded-full" />
+            <Image
+              src="/images/icon-rock.svg"
+              alt="Rock"
+              width={80}
+              height={80}
+              className=" z-10 sm:w-[80px] w-[50px] sm:h-[80px] h-[50px]"
+            />
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      ) : (
+        <div className=" flex justify-between relative w-[70rem]">
+          <div className=" flex flex-col items-center gap-y-24">
+            <h1 className=" text-3xl">YOU PICKED</h1>
+            <div className=" flex  items-center gap-y-10">
+              {isWinner && (
+                <>
+                  <div className=" size-[19.5rem] absolute bg-white/15 rounded-full scale-[1.65]" />
+                  <div className=" size-[19.5rem] absolute bg-white/10 rounded-full scale-[2.15]" />
+                  <div className=" size-[19.5rem] absolute bg-white/5 rounded-full scale-[2.7]" />
+                </>
+              )}
+              <div
+                className={` size-[19.5rem] bg-black border-b-[15px] rounded-full flex justify-center items-center ${
+                  picked === "scissors"
+                    ? "bg-gradient-to-r from-[hsl(39,89%,49%)] to-[hsl(40,84%,53%)] border-amber-700"
+                    : picked === "rock"
+                    ? "bg-gradient-to-r from-[hsl(349,71%,52%)] to-[hsl(349,70%,56%)] border-rose-700"
+                    : "bg-gradient-to-r from-[hsl(230,89%,62%)] to-[hsl(230,89%,65%)] border-indigo-700"
+                }`}
+              >
+                <div className=" size-[15rem] bg-white border-t-[10px] absolute rounded-full" />
+                <Image
+                  src={`/images/icon-${picked}.svg`}
+                  alt={picked}
+                  width={80}
+                  height={80}
+                  className=" z-10"
+                />
+              </div>
+            </div>
+          </div>
+          <div className=" flex flex-col items-center gap-y-24">
+            <h1 className=" text-3xl">THE HOUSE PICKED</h1>
+            <div className=" flex flex-col items-center gap-y-10">
+              {!isWinner && (
+                <>
+                  <div className=" size-[19.5rem] absolute bg-white/15 rounded-full scale-[1.65]" />
+                  <div className=" size-[19.5rem] absolute bg-white/10 rounded-full scale-[2.15]" />
+                  <div className=" size-[19.5rem] absolute bg-white/5 rounded-full scale-[2.7]" />
+                </>
+              )}
+              <div
+                className={` size-[19.5rem] z-10 rounded-full ${
+                  !isLoading && "border-b-[15px]"
+                } flex justify-center items-center ${
+                  !isLoading
+                    ? housePick === "scissors"
+                      ? "bg-gradient-to-r from-[hsl(39,89%,49%)] to-[hsl(40,84%,53%)] border-amber-700"
+                      : housePick === "rock"
+                      ? "bg-gradient-to-r from-[hsl(349,71%,52%)] to-[hsl(349,70%,56%)] border-rose-700"
+                      : "bg-gradient-to-r from-[hsl(230,89%,62%)] to-[hsl(230,89%,65%)] border-indigo-700"
+                    : " bg-transparent "
+                }`}
+              >
+                <div
+                  className={` size-[15rem]  ${
+                    !isLoading ? "border-t-[15px] bg-white " : " bg-black/20"
+                  }  absolute rounded-full`}
+                />
+                {!isLoading && (
+                  <Image
+                    src={`/images/icon-${housePick}.svg`}
+                    alt={picked}
+                    width={80}
+                    height={80}
+                    className=" z-10"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+          <div className=" absolute left-0 right-0 mx-auto w-max bottom-0 my-auto h-max top-0 flex flex-col items-center gap-y-5">
+            {isWinner === null ? (
+              <h1 className=" font-bold text-5xl">DRAW</h1>
+            ) : isWinner ? (
+              <h1 className=" font-bold text-5xl">YOU WIN</h1>
+            ) : (
+              <h1 className=" font-bold text-5xl">YOU LOSE</h1>
+            )}
+            <button
+              onClick={() => handleReset()}
+              className=" bg-white tracking-widest text-black hover:text-red-500 transition-colors px-20 py-4 rounded-md"
+            >
+              PLAY AGAIN
+            </button>
+          </div>
+        </div>
+      )}
+      <RuleBtn />
     </div>
   );
 }
